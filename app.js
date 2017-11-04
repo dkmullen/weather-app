@@ -1,7 +1,8 @@
 /*jshint esversion: 6 */
 
-const request = require('request'),
-  yargs = require('yargs');
+const yargs = require('yargs');
+
+const geocode = require('./geocode/geocode');
 
 // argv - take input var, pass it thur yargs, store it here
 const argv = yargs
@@ -17,23 +18,13 @@ const argv = yargs
   .alias('help', 'h')
   .argv;
 
-  let encodedAddress = encodeURIComponent(argv.a);
-
-request({
-  url: `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}`,
-  json: true
-  /* below, error is
-     response is status code (200 is ok), body, headers, request data, the node headers sent with the req
-     body is the JSON that comes back
-  */
-}, (error, response, body) => {
-  /* 1st property, below, is the body of the req, in this case some JSON
-     2nd property, used to filter out objects, is undefined;
-     third property is spaces to indent */
-  // console.log(JSON.stringify(body, undefined, 2));
-  console.log(`Address: ${body.results[0].formatted_address}`);
-  console.log(`Latitude: ${body.results[0].geometry.location.lat}`);
-  console.log(`Longitude: ${body.results[0].geometry.location.lng}`);
+// Send req to geocode module with an address, expect either an errorMessage or valid results
+geocode.geocodeAddress(argv.address, (errorMessage, results) => {
+  if (errorMessage) {
+    console.log(errorMessage);
+  } else {
+    console.log(JSON.stringify(results, undefined, 2));
+  }
 });
 
 /* 'request' is a node package that makes it easy to make API requests. Above,
@@ -42,3 +33,10 @@ request({
     which are specified by the request module (as seen in the npm docs). That second
     function is a callback function; won't run till the request comes back.
 */
+
+/* Stringify - 1st property, below, is the body of the req, in this case some JSON
+   2nd property, used to filter out objects, is undefined;
+   third property is spaces to indent */
+// console.log(JSON.stringify(body, undefined, 2));
+
+// Instructor says: "All app.js should do is pass an address to the function and doing something with the result."
