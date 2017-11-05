@@ -1,8 +1,14 @@
 /*jshint esversion: 6 */
 
+
+
+
+
+
 const yargs = require('yargs');
 
-const geocode = require('./geocode/geocode');
+const geocode = require('./geocode/geocode'),
+  weather = require('./weather/weather');
 
 // argv - take input var, pass it thur yargs, store it here
 const argv = yargs
@@ -23,9 +29,20 @@ geocode.geocodeAddress(argv.address, (errorMessage, results) => {
   if (errorMessage) {
     console.log(errorMessage);
   } else {
-    console.log(JSON.stringify(results, undefined, 2));
+    // results, latitude and longitude are defined on the returned object in geocode.js
+    console.log(results.address);
+    weather.getWeather(results.latitude, results.longitude, (errorMessage, weatherResults) => {
+      if (errorMessage) {
+        console.log(errorMessage);
+      } else {
+        console.log(`It's currently ${weatherResults.temp} in ${results.address}, and
+        it feels like ${weatherResults.feelslike}.`);
+      }
+    });
   }
 });
+
+
 
 /* 'request' is a node package that makes it easy to make API requests. Above,
     the function named 'request' takes as its first argument an object with our chosen options,
